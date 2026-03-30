@@ -99,17 +99,24 @@ const ProductSection = ({ newArrivals, trendingProducts, productData, searchQuer
               className="py-12 md:py-16"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 font-[Inter, sans-serif]">Hairs</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 font-[Inter, sans-serif]">
+                Exciting Products
+              </h2>
               {categoryProducts.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {categoryProducts.map((product, index) => renderProductCard(product, `${category}-section`, index))}
+                  {categoryProducts.map((product, index) =>
+                    renderProductCard(product, `${category}-section`, index),
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-gray-500 p-8">
-                  <p className="text-lg">No hair products available at the moment. Stay tuned for our upcoming collection.</p>
+                  <p className="text-lg">
+                    No products available at the moment. More exciting products
+                    are coming soon — stay tuned!
+                  </p>
                 </div>
               )}
             </motion.section>

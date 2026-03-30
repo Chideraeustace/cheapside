@@ -64,7 +64,7 @@ const Dashboard = () => {
       setIsLoadingOrders(true);
       setOrderError('');
       try {
-        const ordersQuery = query(collection(firestore, 'orders'));
+        const ordersQuery = query(collection(firestore, 'cs-orders'));
         const querySnapshot = await getDocs(ordersQuery);
         const ordersData = querySnapshot.docs.map(doc => ({
           id: doc.id,
@@ -83,7 +83,7 @@ const Dashboard = () => {
       setIsLoadingProducts(true);
       setProductError('');
       try {
-        const productsQuery = query(collection(firestore, 'products'));
+        const productsQuery = query(collection(firestore, 'cs-products'));
         const querySnapshot = await getDocs(productsQuery);
         const productsData = querySnapshot.docs.map(doc => ({
           id: doc.id,
@@ -135,7 +135,7 @@ const Dashboard = () => {
   }, [editingProduct]);
 
   // Restrict access to store owner
-  const storeOwnerEmail = 'ebortey25@gmail.com';
+  const storeOwnerEmail = 'chideraeustace99@gmail.com';
   if (!auth.currentUser || auth.currentUser.email !== storeOwnerEmail) {
     return (
       <motion.div
@@ -198,7 +198,7 @@ const Dashboard = () => {
 
       const colors = productColors ? productColors.split(',').map(color => color.trim()) : [];
 
-      const docRef = await addDoc(collection(firestore, 'products'), {
+      const docRef = await addDoc(collection(firestore, 'cs-products'), {
         name: productName,
         price: parseFloat(productPrice),
         description: productDescription,
@@ -246,7 +246,7 @@ const Dashboard = () => {
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      await deleteDoc(doc(firestore, 'products', id));
+      await deleteDoc(doc(firestore, 'cs-products', id));
       setProducts(products.filter(p => p.id !== id));
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -261,7 +261,7 @@ const Dashboard = () => {
       return;
     }
     try {
-      const productRef = doc(firestore, 'products', editingProduct.id);
+      const productRef = doc(firestore, 'cs-products', editingProduct.id);
       await updateDoc(productRef, {
         price: parseFloat(editPrice),
         quantity: parseInt(editQuantity),

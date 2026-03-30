@@ -392,7 +392,6 @@ const Header = ({
                        section === 'new-arrivals-section' ? 'New Arrivals' :
                        section === 'trending-section' ? 'Trending Now' :
                        section === 'unisex-collection-section' ? 'Unisex Collection' :
-                       section === 'hairs-section' ? 'Hairs' :
                        section.split('-')[0].charAt(0).toUpperCase() + section.split('-')[0].slice(1)}
                     </motion.a>
                   )}

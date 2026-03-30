@@ -2,15 +2,13 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useScroll, useTransform } from 'framer-motion';
 import { auth, firestore } from './Firebaseconfig';
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
 import { CartContext } from './index';
-import logo from './stephlogo.png';
+import logo from './assets/image-removebg-preview (13).png';
 import image1 from './assets/men.jpeg';
 import image2 from './assets/image2.jpeg';
 import image3 from './assets/trousers.jpeg';
 import image4 from './assets/jewellry.jpeg';
-import image5 from './assets/underwaers-men.jpeg';
 import image6 from './assets/footwears.jpeg';
 import image7 from './assets/office.jpeg';
 import image8 from './assets/bag.jpeg';
@@ -37,7 +35,6 @@ const categoryImages = {
     main: image1,
     topsShirts: image2,
     bottoms: image3,
-    underwears: image5,
     jewelryAccessories: image4,
     slidesFootwears: image6,
   },
@@ -58,7 +55,7 @@ const App = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isMenDropdownOpen, setIsMenDropdownOpen] = useState(false);
@@ -71,15 +68,15 @@ const App = () => {
   const [sliderImages, setSliderImages] = useState([]);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [guestDetails, setGuestDetails] = useState({
-    email: '',
-    name: '',
-    location: '',
-    phone: '',
+    email: "",
+    name: "",
+    location: "",
+    phone: "",
   });
-  const [selectedTag] = useState('all');
+  const [selectedTag] = useState("all");
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [setToast] = useState(null);
-  const navigate = useNavigate();
+  const [toast, setToast] = useState(null); // ← CORRECT
+  //const navigate = useNavigate();
   const heroRef = useRef(null);
 
   const { scrollY } = useScroll();
@@ -95,56 +92,76 @@ const App = () => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 300);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const querySnapshot = await getDocs(collection(firestore, 'products'));
-        const allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const querySnapshot = await getDocs(
+          collection(firestore, "cs-products"),
+        );
+        const allProducts = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         const groupedData = {
-          'unisex collection': [],
-          'men collection': {},
-          'women collection': {},
+          "unisex collection": [],
+          "men collection": {},
+          "women collection": {},
           hairs: [],
         };
 
-        allProducts.forEach(product => {
-          if (!product.image || typeof product.image !== 'string') {
-            console.warn(`Product ${product.id} has invalid image field:`, product.image);
+        allProducts.forEach((product) => {
+          if (!product.image || typeof product.image !== "string") {
+            console.warn(
+              `Product ${product.id} has invalid image field:`,
+              product.image,
+            );
             return;
           }
-          if (product.category === 'unisex collection') {
-            groupedData['unisex collection'].push(product);
-          } else if (product.category === 'hairs') {
+          if (product.category === "unisex collection") {
+            groupedData["unisex collection"].push(product);
+          } else if (product.category === "hairs") {
             groupedData.hairs.push(product);
-          } else if (product.category === 'men collection') {
-            if (!groupedData['men collection'][product.subCategory]) groupedData['men collection'][product.subCategory] = [];
-            groupedData['men collection'][product.subCategory].push(product);
-          } else if (product.category === 'women collection') {
-            if (!groupedData['women collection'][product.subCategory]) groupedData['women collection'][product.subCategory] = [];
-            groupedData['women collection'][product.subCategory].push(product);
+          } else if (product.category === "men collection") {
+            if (!groupedData["men collection"][product.subCategory])
+              groupedData["men collection"][product.subCategory] = [];
+            groupedData["men collection"][product.subCategory].push(product);
+          } else if (product.category === "women collection") {
+            if (!groupedData["women collection"][product.subCategory])
+              groupedData["women collection"][product.subCategory] = [];
+            groupedData["women collection"][product.subCategory].push(product);
           }
         });
 
-        const arrivals = allProducts.filter(p => p.tags && p.tags.some(tag => tag.toLowerCase() === 'new arrivals'));
-        const trending = allProducts.filter(p => p.tags && p.tags.some(tag => tag.toLowerCase() === 'trending now'));
+        const arrivals = allProducts.filter(
+          (p) =>
+            p.tags &&
+            p.tags.some((tag) => tag.toLowerCase() === "new arrivals"),
+        );
+        const trending = allProducts.filter(
+          (p) =>
+            p.tags &&
+            p.tags.some((tag) => tag.toLowerCase() === "trending now"),
+        );
 
-        console.log('All Products:', allProducts);
-        console.log('Trending Products:', trending);
-        console.log('New Arrivals:', arrivals);
+        console.log("All Products:", allProducts);
+        console.log("Trending Products:", trending);
+        console.log("New Arrivals:", arrivals);
 
         setProductData(groupedData);
         setNewArrivals(arrivals);
         setTrendingProducts(trending);
 
         const selectedProducts = [];
-        const validProducts = allProducts.filter(p => p.image && typeof p.image === 'string');
+        const validProducts = allProducts.filter(
+          (p) => p.image && typeof p.image === "string",
+        );
 
         for (let i = 0; i < Math.min(trending.length, 2); i++) {
           if (trending[i].image) {
@@ -152,8 +169,15 @@ const App = () => {
           }
         }
 
-        for (let i = 0; i < Math.min(arrivals.length, 2) && selectedProducts.length < 5; i++) {
-          if (arrivals[i].image && !selectedProducts.some(p => p.id === arrivals[i].id)) {
+        for (
+          let i = 0;
+          i < Math.min(arrivals.length, 2) && selectedProducts.length < 5;
+          i++
+        ) {
+          if (
+            arrivals[i].image &&
+            !selectedProducts.some((p) => p.id === arrivals[i].id)
+          ) {
             selectedProducts.push(arrivals[i]);
           }
         }
@@ -161,54 +185,68 @@ const App = () => {
         const remainingSlots = 5 - selectedProducts.length;
         if (remainingSlots > 0 && validProducts.length > 0) {
           const availableProducts = validProducts.filter(
-            p => !selectedProducts.some(sp => sp.id === p.id)
+            (p) => !selectedProducts.some((sp) => sp.id === p.id),
           );
-          for (let i = 0; i < Math.min(remainingSlots, availableProducts.length); i++) {
-            const randomIndex = Math.floor(Math.random() * availableProducts.length);
+          for (
+            let i = 0;
+            i < Math.min(remainingSlots, availableProducts.length);
+            i++
+          ) {
+            const randomIndex = Math.floor(
+              Math.random() * availableProducts.length,
+            );
             selectedProducts.push(availableProducts[randomIndex]);
             availableProducts.splice(randomIndex, 1);
           }
         }
 
-        let allSlides = selectedProducts.map(p => ({
-          url: p.image,
-          alt: p.name || 'Product Image',
-        })).filter(slide => slide.url);
+        let allSlides = selectedProducts
+          .map((p) => ({
+            url: p.image,
+            alt: p.name || "Product Image",
+          }))
+          .filter((slide) => slide.url);
 
         while (allSlides.length < 5) {
           allSlides.push({
-            url: '/images/default-product-placeholder.jpg',
-            alt: 'Default Product Image',
+            url: "./assets/image-removebg-preview (13).png",
+            alt: "Default Product Image",
           });
         }
 
-        console.log('Selected Products:', selectedProducts);
-        console.log('All Slides:', allSlides);
+        console.log("Selected Products:", selectedProducts);
+        console.log("All Slides:", allSlides);
 
         const logoSlide = {
           url: logo,
-          alt: 'Website Logo',
+          alt: "Website Logo",
         };
         setSliderImages([logoSlide, ...allSlides]);
 
         allSlides.forEach((slide, index) => {
           const img = new Image();
           img.src = slide.url;
-          img.onload = () => console.log(`Slide ${index + 1} image loaded successfully: ${slide.url}`);
-          img.onerror = () => console.error(`Failed to load slide ${index + 1} image: ${slide.url}`);
+          img.onload = () =>
+            console.log(
+              `Slide ${index + 1} image loaded successfully: ${slide.url}`,
+            );
+          img.onerror = () =>
+            console.error(
+              `Failed to load slide ${index + 1} image: ${slide.url}`,
+            );
         });
 
         setProductsLoaded(true);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error("Error fetching products:", error);
         setSliderImages([
           {
             url: logo,
-            alt: 'Website Logo',
+            alt: "Website Logo",
           },
           ...Array(5).fill({
-            url: '/images/default-product-placeholder.jpg',
-            alt: 'Default Product Image',
+            url: "./assets/image-removebg-preview (13).png",
+            alt: "Default Product Image",
           }),
         ]);
         setProductsLoaded(true);
@@ -228,10 +266,11 @@ const App = () => {
     const element = document.getElementById(sectionId);
     if (element) {
       const headerOffset = 80;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
         top: elementPosition - headerOffset,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     } else {
       console.warn(`Section with ID ${sectionId} not found`);
@@ -241,7 +280,7 @@ const App = () => {
   const handleScrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   };
 
@@ -250,18 +289,24 @@ const App = () => {
   };
 
   const handleQuantityChange = (item, delta) => {
-    setCartItems(prevItems =>
-      prevItems.map(cartItem =>
+    setCartItems((prevItems) =>
+      prevItems.map((cartItem) =>
         cartItem.id === item.id && cartItem.selectedColor === item.selectedColor
           ? { ...cartItem, quantity: Math.max(1, cartItem.quantity + delta) }
-          : cartItem
-      )
+          : cartItem,
+      ),
     );
   };
 
   const handleRemoveItem = (item) => {
-    setCartItems(prevItems =>
-      prevItems.filter(cartItem => !(cartItem.id === item.id && cartItem.selectedColor === item.selectedColor))
+    setCartItems((prevItems) =>
+      prevItems.filter(
+        (cartItem) =>
+          !(
+            cartItem.id === item.id &&
+            cartItem.selectedColor === item.selectedColor
+          ),
+      ),
     );
   };
 
@@ -269,122 +314,124 @@ const App = () => {
     setCartItems([]);
   };
 
-  const handleCheckout = () => {
+  // In your main component (App.js, etc.)
+  const handleCheckout = async () => {
     if (!cartItems.length) {
-      setToast({ message: 'Your cart is empty.', type: 'error' });
+      setToast({ message: "Your cart is empty.", type: "error" });
       return;
     }
 
     const { email, name, location, phone } = guestDetails;
     if (!user && (!email || !name || !location || !phone)) {
-      setToast({ message: 'Please fill in all required fields.', type: 'error' });
+      setToast({
+        message: "Please fill in all required fields.",
+        type: "error",
+      });
       return;
     }
 
     setIsCheckoutLoading(true);
 
-    const paystack = window.PaystackPop.setup({
-      key: "pk_live_e6fe5193616f65273607f30ebc9033e16c8e115c",
-      email: user ? user.email : email,
-      amount: totalAmount * 100,
-      currency: 'GHS',
-      ref: `STEPH_${Math.floor(Math.random() * 1000000000)}`,
-      metadata: {
-        cartItems: cartItems.map(item => ({
+    try {
+      const payload = {
+        amount: totalAmount,
+        email: user ? user.email : email,
+        name: user ? user.displayName || name : name,
+        phone: user ? user.phone || phone : phone,
+        location: user ? user.location || location : location,
+        cartItems: cartItems.map((item) => ({
           id: item.id,
           name: item.name,
           quantity: item.quantity,
           price: item.discount ? item.price * (1 - item.discount) : item.price,
           selectedColor: item.selectedColor,
         })),
-        customer: user ? { email: user.email, name: user.displayName || 'N/A' } : { email, name, location, phone },
-      },
-      callback: function(response) {
-        try {
-          addDoc(collection(firestore, 'orders'), {
-            transactionRef: response.reference,
-            cartItems: cartItems.map(item => ({
-              id: item.id,
-              name: item.name,
-              quantity: item.quantity,
-              price: item.discount ? item.price * (1 - item.discount) : item.price,
-              selectedColor: item.selectedColor,
-            })),
-            totalAmount: totalAmount,
-            customer: user ? { email: user.email, name: user.displayName || 'N/A' } : { email, name, location, phone },
-            createdAt: serverTimestamp(),
-            status: 'confirmed',
-          });
-        } catch (error) {
-          console.error('Error saving order to Firestore:', error);
-        }
+      };
 
-        navigate('/order-confirmation', {
-          state: {
-            transactionRef: response.reference,
-            cartItems,
-            totalAmount,
-            customer: user ? { email: user.email, name: user.displayName || 'N/A' } : { email, name, location, phone },
+      const response = await fetch(
+        "https://us-central1-eustech-c4332.cloudfunctions.net/createMoolreCheckout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        });
-        setCartItems([]);
-        setIsCartOpen(false);
-        setIsCheckoutLoading(false);
-        setGuestDetails({ email: '', name: '', location: '', phone: '' });
-        setToast({ message: 'Order placed successfully!', type: 'success' });
-      },
-      onClose: function() {
-        setToast({ message: 'Payment cancelled.', type: 'error' });
-        setIsCheckoutLoading(false);
-      },
-    });
+          body: JSON.stringify(payload),
+        },
+      );
 
-    paystack.openIframe();
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.checkoutUrl) {
+        throw new Error(data.error || "Failed to create checkout session");
+      }
+
+      // Redirect to Moolre
+      window.location.href = data.checkoutUrl;
+    } catch (error) {
+      console.error("Checkout error:", error);
+      setToast({
+        message: error.message || "Something went wrong. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setIsCheckoutLoading(false);
+    }
   };
-
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cartItems.reduce(
-    (sum, item) => sum + (item.discount ? item.price * (1 - item.discount) : item.price) * item.quantity,
-    0
+    (sum, item) =>
+      sum +
+      (item.discount ? item.price * (1 - item.discount) : item.price) *
+        item.quantity,
+    0,
   );
 
-  const filteredProducts = Object.entries(productData).flatMap(([category, data]) => {
-    if (category === 'unisex collection' || category === 'hairs') {
-      return data.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) && (selectedTag === 'all' || (p.tags && p.tags.includes(selectedTag))));
-    }
-    return Object.values(data).flat().filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) && (selectedTag === 'all' || (p.tags && p.tags.includes(selectedTag))));
-  });
+  const filteredProducts = Object.entries(productData).flatMap(
+    ([category, data]) => {
+      if (category === "unisex collection" || category === "hairs") {
+        return data.filter(
+          (p) =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            (selectedTag === "all" || (p.tags && p.tags.includes(selectedTag))),
+        );
+      }
+      return Object.values(data)
+        .flat()
+        .filter(
+          (p) =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            (selectedTag === "all" || (p.tags && p.tags.includes(selectedTag))),
+        );
+    },
+  );
 
-  const hasResults = filteredProducts.length > 0 || searchQuery === '';
+  const hasResults = filteredProducts.length > 0 || searchQuery === "";
 
   const navSections = [
-    'hero-section',
-    'categories-section',
-    'new-arrivals-section',
-    'trending-section',
-    'unisex-collection-section',
-    'men-collection-section',
-    'women-collection-section',
-    'hairs-section',
+    "hero-section",
+    "categories-section",
+    "new-arrivals-section",
+    "trending-section",
+    "unisex-collection-section",
+    "men-collection-section",
+    "women-collection-section",
   ];
 
   const menSubcategories = [
-    'tops & shirts',
-    'bottoms',
-    'underwears',
-    'jewelry & accessories',
-    'slides & footwears',
-  ].map(sub => `men-collection-${sub.replace(/\s+/g, '-')}-section`);
+    "tops & shirts",
+    "bottoms",
+    "jewelry & accessories",
+  ].map((sub) => `men-collection-${sub.replace(/\s+/g, "-")}-section`);
 
   const womenSubcategories = [
-    'corporate/office wears',
-    'dresses and 2/3 set pieces',
-    'african wears',
-    'blouses and tank tops',
-    'belts jewelry and accessories',
-    'bags and shoes',
-    'sunglasses and perfumes',
-  ].map(sub => `women-collection-${sub.replace(/\s+/g, '-')}-section`);
+    "corporate/office wears",
+    "dresses and 2/3 set pieces",
+    "african wears",
+    "blouses and tank tops",
+    "belts jewelry and accessories",
+    "bags and shoes",
+    "sunglasses and perfumes",
+  ].map((sub) => `women-collection-${sub.replace(/\s+/g, "-")}-section`);
 
   const SkeletonProductCard = () => (
     <div className="bg-white p-4 rounded-xl shadow-md min-w-[160px] md:min-w-0 animate-pulse">
@@ -475,13 +522,14 @@ const App = () => {
         handleQuantityChange={handleQuantityChange}
         handleRemoveItem={handleRemoveItem}
         handleClearCart={handleClearCart}
-        handleCheckout={handleCheckout}
+        handleCheckout={handleCheckout} // ← This is fine now
         isCheckoutLoading={isCheckoutLoading}
         guestDetails={guestDetails}
         setGuestDetails={setGuestDetails}
         user={user}
         totalItems={totalItems}
         totalAmount={totalAmount}
+        // No need to pass setToast anymore since handleCheckout already has access to it
       />
 
       <main className="container mx-auto px-0 py-0 md:py-0">
@@ -534,7 +582,7 @@ const App = () => {
             className="fixed bottom-8 right-8 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors duration-300 z-50"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             aria-label="Scroll to top"
           >
             <FaArrowUp className="w-5 h-5" />
@@ -546,7 +594,7 @@ const App = () => {
             className="fixed bottom-20 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors duration-300 z-50"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             aria-label="Contact via WhatsApp"
           >
             <FaWhatsapp className="w-5 h-5" />
@@ -555,6 +603,6 @@ const App = () => {
       )}
     </div>
   );
-};
+};;
 
 export default App;

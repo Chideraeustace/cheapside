@@ -11,9 +11,7 @@ const CategorySection = ({ categoryImages, handleNavClick }) => {
   const menSubcategories = [
     'tops & shirts',
     'bottoms',
-    'underwears',
     'jewelry & accessories',
-    'slides & footwears',
   ].map(sub => ({
     id: `men-collection-${sub.replace(/\s+/g, '-')}-section`,
     name: sub,
@@ -27,9 +25,6 @@ const CategorySection = ({ categoryImages, handleNavClick }) => {
     'dresses and 2/3 set pieces',
     'african wears',
     'blouses and tank tops',
-    'belts jewelry and accessories',
-    'bags and shoes',
-    'sunglasses and perfumes',
   ].map(sub => ({
     id: `women-collection-${sub.replace(/\s+/g, '-')}-section`,
     name: sub,

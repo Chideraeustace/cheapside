@@ -56,10 +56,12 @@ const CartModal = ({
             animate="open"
             exit="closed"
             className="bg-white w-full max-w-md h-full p-6 overflow-y-auto"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold font-[Inter, sans-serif]">Your Cart</h2>
+              <h2 className="text-2xl font-bold font-[Inter, sans-serif]">
+                Your Cart
+              </h2>
               <motion.button
                 onClick={() => setIsCartOpen(false)}
                 className="text-gray-600 hover:text-gray-800"
@@ -89,8 +91,17 @@ const CartModal = ({
                         loading="lazy"
                       />
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold">{item.name}{item.selectedColor && ` (${item.selectedColor})`}</h3>
-                        <p className="text-xs text-gray-500">GHS {(item.discount ? item.price * (1 - item.discount) : item.price).toFixed(2)}</p>
+                        <h3 className="text-sm font-semibold">
+                          {item.name}
+                          {item.selectedColor && ` (${item.selectedColor})`}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          GHS{" "}
+                          {(item.discount
+                            ? item.price * (1 - item.discount)
+                            : item.price
+                          ).toFixed(2)}
+                        </p>
                         <div className="flex items-center mt-2">
                           <motion.button
                             onClick={() => handleQuantityChange(item, -1)}
@@ -129,7 +140,10 @@ const CartModal = ({
                   {!user && (
                     <div className="space-y-4 mb-4">
                       <div>
-                        <label htmlFor="guestEmail" className="block text-sm font-semibold mb-2">
+                        <label
+                          htmlFor="guestEmail"
+                          className="block text-sm font-semibold mb-2"
+                        >
                           Email (required)
                         </label>
                         <input
@@ -138,13 +152,21 @@ const CartModal = ({
                           placeholder="Enter your email"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           value={guestDetails.email}
-                          onChange={(e) => setGuestDetails(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={(e) =>
+                            setGuestDetails((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }))
+                          }
                           aria-label="Guest email for checkout"
                           required
                         />
                       </div>
                       <div>
-                        <label htmlFor="guestName" className="block text-sm font-semibold mb-2">
+                        <label
+                          htmlFor="guestName"
+                          className="block text-sm font-semibold mb-2"
+                        >
                           Name (required)
                         </label>
                         <input
@@ -153,13 +175,21 @@ const CartModal = ({
                           placeholder="Enter your name"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           value={guestDetails.name}
-                          onChange={(e) => setGuestDetails(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) =>
+                            setGuestDetails((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
+                          }
                           aria-label="Guest name for checkout"
                           required
                         />
                       </div>
                       <div>
-                        <label htmlFor="guestLocation" className="block text-sm font-semibold mb-2">
+                        <label
+                          htmlFor="guestLocation"
+                          className="block text-sm font-semibold mb-2"
+                        >
                           Location (required)
                         </label>
                         <input
@@ -168,13 +198,21 @@ const CartModal = ({
                           placeholder="Enter your location"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           value={guestDetails.location}
-                          onChange={(e) => setGuestDetails(prev => ({ ...prev, location: e.target.value }))}
+                          onChange={(e) =>
+                            setGuestDetails((prev) => ({
+                              ...prev,
+                              location: e.target.value,
+                            }))
+                          }
                           aria-label="Guest location for checkout"
                           required
                         />
                       </div>
                       <div>
-                        <label htmlFor="guestPhone" className="block text-sm font-semibold mb-2">
+                        <label
+                          htmlFor="guestPhone"
+                          className="block text-sm font-semibold mb-2"
+                        >
                           Phone Number (required)
                         </label>
                         <input
@@ -183,7 +221,12 @@ const CartModal = ({
                           placeholder="Enter your phone number"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           value={guestDetails.phone}
-                          onChange={(e) => setGuestDetails(prev => ({ ...prev, phone: e.target.value }))}
+                          onChange={(e) =>
+                            setGuestDetails((prev) => ({
+                              ...prev,
+                              phone: e.target.value,
+                            }))
+                          }
                           aria-label="Guest phone number for checkout"
                           required
                         />
@@ -208,15 +251,16 @@ const CartModal = ({
                       Clear Cart
                     </motion.button>
                     <motion.button
-                      onClick={handleCheckout}
+                      onClick={handleCheckout} // ← Keep this simple
                       className={`bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center ${
-                        isCheckoutDisabled ? 'opacity-50 cursor-not-allowed' : ''
+                        isCheckoutDisabled
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
                       }`}
                       whileHover={{ scale: isCheckoutDisabled ? 1 : 1.05 }}
                       whileTap={{ scale: isCheckoutDisabled ? 1 : 0.95 }}
                       disabled={isCheckoutDisabled}
-                      aria-label="Proceed to checkout with Paystack"
-                      title={isCheckoutDisabled && !isCheckoutLoading && cartItems.length > 0 ? 'Please fill in all required fields correctly' : ''}
+                      aria-label="Proceed to checkout with Moolre"
                     >
                       {isCheckoutLoading ? (
                         <>
@@ -242,7 +286,7 @@ const CartModal = ({
                           Processing...
                         </>
                       ) : (
-                        'Checkout'
+                        "Checkout with Moolre" // Optional: clearer text
                       )}
                     </motion.button>
                   </div>
