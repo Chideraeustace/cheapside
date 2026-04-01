@@ -50,7 +50,7 @@ const ProductDetail = () => {
   const availableColors = product.colors || [];
 
   const handleAddToCartClick = () => {
-    handleAddToCart(product, quantity, selectedColor);
+    handleAddToCart(product, quantity);
     navigate('/');
   };
 
@@ -140,28 +140,7 @@ const ProductDetail = () => {
           <p className="text-gray-600 text-base leading-relaxed">{product.description}</p>
 
           {/* Color Selector */}
-          {availableColors.length > 0 && (
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Select Color:</label>
-              <div className="flex flex-wrap gap-2">
-                {availableColors.map(color => (
-                  <motion.button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${
-                      selectedColor === color ? 'border-indigo-600 ring-2 ring-indigo-600' : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color.toLowerCase() }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    title={color}
-                  >
-                    <span className="sr-only">{color}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          )}
+          
 
           {/* Quantity Selector */}
           <div className="flex flex-col space-y-2">

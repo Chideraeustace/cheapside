@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FaInstagram, FaFacebookF, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { SiTiktok, SiSnapchat, SiTelegram } from 'react-icons/si';
 
@@ -12,12 +12,12 @@ const Footer = ({
   menSubcategories,
   womenSubcategories,
 }) => {
-  const dropdownVariants = {
-    open: { opacity: 1, height: 'auto', transition: { duration: 0.3, ease: 'easeOut' } },
-    closed: { opacity: 0, height: 0, transition: { duration: 0.3, ease: 'easeIn' } },
-  };
+  //const dropdownVariants = {
+  //  open: { opacity: 1, height: 'auto', transition: { duration: 0.3, ease: 'easeOut' } },
+  //  closed: { opacity: 0, height: 0, transition: { duration: 0.3, ease: 'easeIn' } },
+  //};
 
-  const formatSubSectionName = (subSection) => {
+  /*const formatSubSectionName = (subSection) => {
     // Ensure robust prefix and suffix removal
     let subCategory = subSection
       .replace(/^men-collection-/, '')
@@ -77,7 +77,7 @@ const Footer = ({
         break;
     }
     return formattedName;
-  };
+  };*/
 
   return (
     <motion.footer
@@ -138,134 +138,6 @@ const Footer = ({
               </motion.a>
             ))}
           </div>
-        </div>
-        <div>
-          <h3 className="text-white text-lg font-semibold mb-4 font-[Inter, sans-serif]">
-            Shop
-          </h3>
-          <ul className="space-y-3 text-sm">
-            <li>
-              <motion.a
-                href="#unisex-collection-section"
-                className="hover:text-indigo-400 transition-colors duration-300"
-                onClick={(e) => handleNavClick(e, "unisex-collection-section")}
-                whileHover={{ scale: 1.05 }}
-                aria-label="Navigate to Unisex Collection"
-              >
-                Unisex Collection
-              </motion.a>
-            </li>
-            <li>
-              <motion.button
-                className="hover:text-indigo-400 transition-colors duration-300 flex items-center"
-                onClick={() => {
-                  setIsMenDropdownOpen(!isMenDropdownOpen);
-                  setIsWomenDropdownOpen(false);
-                }}
-                whileHover={{ scale: 1.05 }}
-                aria-label="Men Collection Menu"
-                aria-expanded={isMenDropdownOpen}
-              >
-                Men Collection
-                <svg
-                  className="w-4 h-4 ml-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </motion.button>
-              <AnimatePresence>
-                {isMenDropdownOpen && (
-                  <motion.ul
-                    variants={dropdownVariants}
-                    initial="closed"
-                    animate="open"
-                    exit="closed"
-                    className="pl-4 space-y-2"
-                  >
-                    {menSubcategories.map((subSection) => (
-                      <li key={subSection}>
-                        <motion.a
-                          href={`#${subSection}`}
-                          className="hover:text-indigo-400 transition-colors duration-300"
-                          onClick={(e) => {
-                            handleNavClick(e, subSection);
-                            setIsMenDropdownOpen(false);
-                          }}
-                          whileHover={{ scale: 1.05 }}
-                          aria-label={`Navigate to ${formatSubSectionName(subSection)}`}
-                        >
-                          {formatSubSectionName(subSection)}
-                        </motion.a>
-                      </li>
-                    ))}
-                  </motion.ul>
-                )}
-              </AnimatePresence>
-            </li>
-            <li>
-              <motion.button
-                className="hover:text-indigo-400 transition-colors duration-300 flex items-center"
-                onClick={() => {
-                  setIsWomenDropdownOpen(!isWomenDropdownOpen);
-                  setIsMenDropdownOpen(false);
-                }}
-                whileHover={{ scale: 1.05 }}
-                aria-label="Women Collection Menu"
-                aria-expanded={isWomenDropdownOpen}
-              >
-                Women Collection
-                <svg
-                  className="w-4 h-4 ml-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </motion.button>
-              <AnimatePresence>
-                {isWomenDropdownOpen && (
-                  <motion.ul
-                    variants={dropdownVariants}
-                    initial="closed"
-                    animate="open"
-                    exit="closed"
-                    className="pl-4 space-y-2"
-                  >
-                    {womenSubcategories.map((subSection) => (
-                      <li key={subSection}>
-                        <motion.a
-                          href={`#${subSection}`}
-                          className="hover:text-indigo-400 transition-colors duration-300"
-                          onClick={(e) => {
-                            handleNavClick(e, subSection);
-                            setIsWomenDropdownOpen(false);
-                          }}
-                          whileHover={{ scale: 1.05 }}
-                          aria-label={`Navigate to ${formatSubSectionName(subSection)}`}
-                        >
-                          {formatSubSectionName(subSection)}
-                        </motion.a>
-                      </li>
-                    ))}
-                  </motion.ul>
-                )}
-              </AnimatePresence>
-            </li>
-          </ul>
         </div>
         <div>
           <h3 className="text-white text-lg font-semibold mb-4 font-[Inter, sans-serif]">

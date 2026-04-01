@@ -412,9 +412,6 @@ const App = () => {
     "categories-section",
     "new-arrivals-section",
     "trending-section",
-    "unisex-collection-section",
-    "men-collection-section",
-    "women-collection-section",
   ];
 
   const menSubcategories = [
@@ -588,7 +585,7 @@ const App = () => {
             <FaArrowUp className="w-5 h-5" />
           </motion.button>
           <motion.a
-            href="https://wa.me/233546332669"
+            href="https://wa.me/233558861119"
             target="_blank"
             rel="noopener noreferrer"
             className="fixed bottom-20 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors duration-300 z-50"
