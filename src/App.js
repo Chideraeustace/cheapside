@@ -1,69 +1,35 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { useScroll, useTransform } from 'framer-motion';
-import { auth, firestore } from './Firebaseconfig';
-import { collection, getDocs } from 'firebase/firestore';
-import { CartContext } from './index';
-import logo from './assets/image-removebg-preview (13).png';
-import image1 from './assets/men.jpeg';
-import image2 from './assets/image2.jpeg';
-import image3 from './assets/trousers.jpeg';
-import image4 from './assets/jewellry.jpeg';
-import image6 from './assets/footwears.jpeg';
-import image7 from './assets/office.jpeg';
-import image8 from './assets/bag.jpeg';
-import image9 from './assets/african.jpeg';
-import image10 from './assets/perfumes.jpeg';
-import image11 from './assets/tank.jpeg';
-import image12 from './assets/womanjewelry.jpeg';
-import image13 from './assets/women.jpeg';
-import image14 from './assets/2 set.jpeg';
-import image15 from './assets/unisex.jpeg';
-import Header from './Components/Header';
-import HeroSection from './Components/HeroSection';
-import CategorySection from './Components/CategorySection';
-import SearchSection from './Components/SearchSection';
-import ProductSection from './Components/ProductSection';
-import Footer from './Components/Footer';
-import CartModal from './Components/CartModal';
-import { FaArrowUp, FaWhatsapp } from 'react-icons/fa';
+// src/App.js
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { motion } from "framer-motion";
+import { useScroll, useTransform } from "framer-motion";
+import { auth, firestore } from "./Firebaseconfig";
+import { collection, getDocs } from "firebase/firestore";
+import { CartContext } from "./index";
+import logo from "./assets/image-removebg-preview (13).png";
 
-// Placeholder images for categories
-const categoryImages = {
-  unisex: image15,
-  men: {
-    main: image1,
-    topsShirts: image2,
-    bottoms: image3,
-    jewelryAccessories: image4,
-    slidesFootwears: image6,
-  },
-  women: {
-    main: image13,
-    corporateOfficeWears: image7,
-    dressesAndSets: image14,
-    africanWears: image9,
-    blousesAndTankTops: image11,
-    beltsJewelryAndAccessories: image12,
-    bagsAndShoes: image8,
-    sunglassesAndPerfumes: image10,
-  },
-};
+import Header from "./Components/Header";
+import HeroSection from "./Components/HeroSection";
+import CategorySection from "./Components/CategorySection";
+import SearchSection from "./Components/SearchSection";
+import ProductSection from "./Components/ProductSection";
+import Footer from "./Components/Footer";
+import CartModal from "./Components/CartModal";
+import { FaArrowUp, FaWhatsapp } from "react-icons/fa";
 
 const App = () => {
   const { cartItems, setCartItems } = useContext(CartContext);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isMenDropdownOpen, setIsMenDropdownOpen] = useState(false);
-  const [isWomenDropdownOpen, setIsWomenDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [productData, setProductData] = useState({});
+  const [productData, setProductData] = useState({}); // Dynamic grouping
   const [newArrivals, setNewArrivals] = useState([]);
   const [trendingProducts, setTrendingProducts] = useState([]);
+  const [categories, setCategories] = useState([]); // ← Dynamic categories
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
@@ -73,25 +39,23 @@ const App = () => {
     location: "",
     phone: "",
   });
-  const [selectedTag] = useState("all");
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [toast, setToast] = useState(null); // ← CORRECT
-  //const navigate = useNavigate();
-  const heroRef = useRef(null);
+  const [toast, setToast] = useState(null);
 
+  const heroRef = useRef(null);
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 300], [0, 50]);
 
+  // Auth
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(setUser);
     return unsubscribe;
   }, []);
 
+  // Scroll & loading
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 300);
-    };
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    const handleScroll = () => setShowBackToTop(window.scrollY > 300);
     window.addEventListener("scroll", handleScroll);
     return () => {
       clearTimeout(timer);
@@ -99,198 +63,129 @@ const App = () => {
     };
   }, []);
 
+  // Fetch Categories + Products Dynamically
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const querySnapshot = await getDocs(
-          collection(firestore, "cs-products"),
+        // 1. Fetch Categories
+        const catSnapshot = await getDocs(
+          collection(firestore, "cs-categories"),
         );
-        const allProducts = querySnapshot.docs.map((doc) => ({
+        const fetchedCategories = catSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        const groupedData = {
-          "unisex collection": [],
-          "men collection": {},
-          "women collection": {},
-          hairs: [],
-        };
+        setCategories(fetchedCategories);
+
+        // 2. Fetch Products
+        const prodSnapshot = await getDocs(
+          collection(firestore, "cs-products"),
+        );
+        let allProducts = prodSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Normalize products (support both old `image` and new `images` array)
+        allProducts = allProducts.map((product) => ({
+          ...product,
+          images:
+            product.images &&
+            Array.isArray(product.images) &&
+            product.images.length > 0
+              ? product.images
+              : product.image
+                ? [{ url: product.image, color: "Default" }]
+                : [],
+          image: product.images?.[0]?.url || product.image || null,
+        }));
+
+        // Group products dynamically by category → subcategory
+        const groupedData = {};
 
         allProducts.forEach((product) => {
-          if (!product.image || typeof product.image !== "string") {
-            console.warn(
-              `Product ${product.id} has invalid image field:`,
-              product.image,
-            );
-            return;
+          const catName = product.category || "Uncategorized";
+          if (!groupedData[catName]) groupedData[catName] = {};
+
+          const subCatName = product.subCategory || "Others";
+          if (!groupedData[catName][subCatName]) {
+            groupedData[catName][subCatName] = [];
           }
-          if (product.category === "unisex collection") {
-            groupedData["unisex collection"].push(product);
-          } else if (product.category === "hairs") {
-            groupedData.hairs.push(product);
-          } else if (product.category === "men collection") {
-            if (!groupedData["men collection"][product.subCategory])
-              groupedData["men collection"][product.subCategory] = [];
-            groupedData["men collection"][product.subCategory].push(product);
-          } else if (product.category === "women collection") {
-            if (!groupedData["women collection"][product.subCategory])
-              groupedData["women collection"][product.subCategory] = [];
-            groupedData["women collection"][product.subCategory].push(product);
-          }
+          groupedData[catName][subCatName].push(product);
         });
 
-        const arrivals = allProducts.filter(
-          (p) =>
-            p.tags &&
-            p.tags.some((tag) => tag.toLowerCase() === "new arrivals"),
+        // New Arrivals & Trending
+        const arrivals = allProducts.filter((p) =>
+          p.tags?.some((tag) => tag.toLowerCase() === "new arrivals"),
         );
-        const trending = allProducts.filter(
-          (p) =>
-            p.tags &&
-            p.tags.some((tag) => tag.toLowerCase() === "trending now"),
+        const trending = allProducts.filter((p) =>
+          p.tags?.some((tag) => tag.toLowerCase() === "trending now"),
         );
-
-        console.log("All Products:", allProducts);
-        console.log("Trending Products:", trending);
-        console.log("New Arrivals:", arrivals);
 
         setProductData(groupedData);
         setNewArrivals(arrivals);
         setTrendingProducts(trending);
 
-        const selectedProducts = [];
-        const validProducts = allProducts.filter(
-          (p) => p.image && typeof p.image === "string",
-        );
+        // Hero Slider - Use first image of trending + arrivals
+        const sliderProducts = [
+          ...trending.slice(0, 3),
+          ...arrivals.slice(0, 2),
+        ];
+        const slides = sliderProducts.map((p) => ({
+          url: p.images?.[0]?.url || p.image || logo,
+          alt: p.name || "Product",
+        }));
 
-        for (let i = 0; i < Math.min(trending.length, 2); i++) {
-          if (trending[i].image) {
-            selectedProducts.push(trending[i]);
-          }
-        }
-
-        for (
-          let i = 0;
-          i < Math.min(arrivals.length, 2) && selectedProducts.length < 5;
-          i++
-        ) {
-          if (
-            arrivals[i].image &&
-            !selectedProducts.some((p) => p.id === arrivals[i].id)
-          ) {
-            selectedProducts.push(arrivals[i]);
-          }
-        }
-
-        const remainingSlots = 5 - selectedProducts.length;
-        if (remainingSlots > 0 && validProducts.length > 0) {
-          const availableProducts = validProducts.filter(
-            (p) => !selectedProducts.some((sp) => sp.id === p.id),
-          );
-          for (
-            let i = 0;
-            i < Math.min(remainingSlots, availableProducts.length);
-            i++
-          ) {
-            const randomIndex = Math.floor(
-              Math.random() * availableProducts.length,
-            );
-            selectedProducts.push(availableProducts[randomIndex]);
-            availableProducts.splice(randomIndex, 1);
-          }
-        }
-
-        let allSlides = selectedProducts
-          .map((p) => ({
-            url: p.image,
-            alt: p.name || "Product Image",
-          }))
-          .filter((slide) => slide.url);
-
-        while (allSlides.length < 5) {
-          allSlides.push({
-            url: "./assets/image-removebg-preview (13).png",
-            alt: "Default Product Image",
-          });
-        }
-
-        console.log("Selected Products:", selectedProducts);
-        console.log("All Slides:", allSlides);
-
-        const logoSlide = {
-          url: logo,
-          alt: "Website Logo",
-        };
-        setSliderImages([logoSlide, ...allSlides]);
-
-        allSlides.forEach((slide, index) => {
-          const img = new Image();
-          img.src = slide.url;
-          img.onload = () =>
-            console.log(
-              `Slide ${index + 1} image loaded successfully: ${slide.url}`,
-            );
-          img.onerror = () =>
-            console.error(
-              `Failed to load slide ${index + 1} image: ${slide.url}`,
-            );
-        });
-
+        setSliderImages([{ url: logo, alt: "Logo" }, ...slides]);
         setProductsLoaded(true);
       } catch (error) {
-        console.error("Error fetching products:", error);
-        setSliderImages([
-          {
-            url: logo,
-            alt: "Website Logo",
-          },
-          ...Array(5).fill({
-            url: "./assets/image-removebg-preview (13).png",
-            alt: "Default Product Image",
-          }),
-        ]);
+        console.error("Error fetching data:", error);
         setProductsLoaded(true);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const handleNavClick = (e, sectionId) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false);
-    setIsSearchOpen(false);
-    setIsMenDropdownOpen(false);
-    setIsWomenDropdownOpen(false);
-    setIsCartOpen(false);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const headerOffset = 80;
-      const elementPosition =
-        element.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({
-        top: elementPosition - headerOffset,
-        behavior: "smooth",
-      });
-    } else {
-      console.warn(`Section with ID ${sectionId} not found`);
-    }
-  };
+  // Add to Cart with selected variant
+  const addToCart = (product, selectedVariant) => {
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      selectedColor: selectedVariant.color || "Default",
+      selectedImage: selectedVariant.url,
+      images: product.images || [],
+    };
 
-  const handleScrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
+    setCartItems((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) =>
+          item.id === cartItem.id &&
+          item.selectedColor === cartItem.selectedColor,
+      );
+
+      if (existingIndex !== -1) {
+        return prev.map((item, idx) =>
+          idx === existingIndex
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+      }
+      return [...prev, cartItem];
+    });
+
+    setToast({
+      message: `${product.name} (${selectedVariant.color}) added to cart!`,
+      type: "success",
     });
   };
 
-  const handleLogout = async () => {
-    await auth.signOut();
-  };
-
+  // Cart handlers
   const handleQuantityChange = (item, delta) => {
-    setCartItems((prevItems) =>
-      prevItems.map((cartItem) =>
+    setCartItems((prev) =>
+      prev.map((cartItem) =>
         cartItem.id === item.id && cartItem.selectedColor === item.selectedColor
           ? { ...cartItem, quantity: Math.max(1, cartItem.quantity + delta) }
           : cartItem,
@@ -299,8 +194,8 @@ const App = () => {
   };
 
   const handleRemoveItem = (item) => {
-    setCartItems((prevItems) =>
-      prevItems.filter(
+    setCartItems((prev) =>
+      prev.filter(
         (cartItem) =>
           !(
             cartItem.id === item.id &&
@@ -310,11 +205,33 @@ const App = () => {
     );
   };
 
-  const handleClearCart = () => {
-    setCartItems([]);
+  // Add this inside the App component, before the return ()
+  const handleNavClick = (e, targetId) => {
+    if (e) e.preventDefault();
+
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      // If you have a mobile menu open, close it here
+      setIsMobileMenuOpen(false);
+    } else {
+      console.error(`Could not find element with ID: ${targetId}`);
+    }
   };
 
-  // In your main component (App.js, etc.)
+  const handleClearCart = () => setCartItems([]);
+
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+
+  // Checkout (kept your original logic)
   const handleCheckout = async () => {
     if (!cartItems.length) {
       setToast({ message: "Your cart is empty.", type: "error" });
@@ -342,6 +259,7 @@ const App = () => {
         cartItems: cartItems.map((item) => ({
           id: item.id,
           name: item.name,
+          image: item.image, 
           quantity: item.quantity,
           price: item.discount ? item.price * (1 - item.discount) : item.price,
           selectedColor: item.selectedColor,
@@ -377,118 +295,17 @@ const App = () => {
       setIsCheckoutLoading(false);
     }
   };
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = cartItems.reduce(
-    (sum, item) =>
-      sum +
-      (item.discount ? item.price * (1 - item.discount) : item.price) *
-        item.quantity,
-    0,
-  );
-
-  const filteredProducts = Object.entries(productData).flatMap(
-    ([category, data]) => {
-      if (category === "unisex collection" || category === "hairs") {
-        return data.filter(
-          (p) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-            (selectedTag === "all" || (p.tags && p.tags.includes(selectedTag))),
-        );
-      }
-      return Object.values(data)
-        .flat()
-        .filter(
-          (p) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-            (selectedTag === "all" || (p.tags && p.tags.includes(selectedTag))),
-        );
-    },
-  );
-
-  const hasResults = filteredProducts.length > 0 || searchQuery === "";
-
-  const navSections = [
-    "hero-section",
-    "categories-section",
-    "new-arrivals-section",
-    "trending-section",
-  ];
-
-  const menSubcategories = [
-    "tops & shirts",
-    "bottoms",
-    "jewelry & accessories",
-  ].map((sub) => `men-collection-${sub.replace(/\s+/g, "-")}-section`);
-
-  const womenSubcategories = [
-    "corporate/office wears",
-    "dresses and 2/3 set pieces",
-    "african wears",
-    "blouses and tank tops",
-    "belts jewelry and accessories",
-    "bags and shoes",
-    "sunglasses and perfumes",
-  ].map((sub) => `women-collection-${sub.replace(/\s+/g, "-")}-section`);
-
-  const SkeletonProductCard = () => (
-    <div className="bg-white p-4 rounded-xl shadow-md min-w-[160px] md:min-w-0 animate-pulse">
-      <div className="w-full h-32 bg-gray-200 rounded-lg mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded mb-1"></div>
-      <div className="h-3 bg-gray-200 rounded mb-2"></div>
-      <div className="flex items-center justify-between">
-        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-      </div>
-    </div>
-  );
 
   if (!productsLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-          {[...Array(8)].map((_, index) => (
-            <SkeletonProductCard key={index} />
-          ))}
-        </div>
+        <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   return (
     <div className="text-gray-800 min-h-screen font-sans">
-      <style>
-        {`
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          .sticky-search {
-            position: sticky;
-            top: 80px;
-            z-index: 40;
-            background: black;
-            padding: 8px 16px;
-          }
-          .category-circle {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f3f4f6;
-          }
-          .category-circle img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
-        `}
-      </style>
-
       <Header
         logo={logo}
         isMobileMenuOpen={isMobileMenuOpen}
@@ -497,19 +314,12 @@ const App = () => {
         setIsSearchOpen={setIsSearchOpen}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        isMenDropdownOpen={isMenDropdownOpen}
-        setIsMenDropdownOpen={setIsMenDropdownOpen}
-        isWomenDropdownOpen={isWomenDropdownOpen}
-        setIsWomenDropdownOpen={setIsWomenDropdownOpen}
         isCartOpen={isCartOpen}
         setIsCartOpen={setIsCartOpen}
         totalItems={totalItems}
+        categories={categories}
         user={user}
         handleNavClick={handleNavClick}
-        handleLogout={handleLogout}
-        navSections={navSections}
-        menSubcategories={menSubcategories}
-        womenSubcategories={womenSubcategories}
       />
 
       <CartModal
@@ -519,17 +329,16 @@ const App = () => {
         handleQuantityChange={handleQuantityChange}
         handleRemoveItem={handleRemoveItem}
         handleClearCart={handleClearCart}
-        handleCheckout={handleCheckout} // ← This is fine now
+        handleCheckout={handleCheckout}
         isCheckoutLoading={isCheckoutLoading}
         guestDetails={guestDetails}
         setGuestDetails={setGuestDetails}
         user={user}
         totalItems={totalItems}
         totalAmount={totalAmount}
-        // No need to pass setToast anymore since handleCheckout already has access to it
       />
 
-      <main className="container mx-auto px-0 py-0 md:py-0">
+      <main>
         <HeroSection
           isLoading={isLoading}
           sliderImages={sliderImages}
@@ -537,62 +346,56 @@ const App = () => {
           setCurrentSlideIndex={setCurrentSlideIndex}
           heroRef={heroRef}
           y={y}
-          handleNavClick={handleNavClick}
         />
 
         <CategorySection
-          categoryImages={categoryImages}
-          handleNavClick={handleNavClick}
+          categories={categories}
+          // This flattens your grouped productData back into a single array for searching
+          products={Object.values(productData).flatMap((cat) =>
+            Object.values(cat).flat(),
+          )}
+          handleNavClick={handleNavClick} // Ensure this function is passed if you want clicking to work
         />
 
-        {searchQuery && hasResults && (
+        {searchQuery && (
           <SearchSection
             searchQuery={searchQuery}
-            filteredProducts={filteredProducts}
+            filteredProducts={Object.values(productData).flatMap((cat) =>
+              Object.values(cat).flat(),
+            )}
+            addToCart={addToCart}
           />
         )}
 
         <ProductSection
+          productData={productData} // ← Dynamic
           newArrivals={newArrivals}
           trendingProducts={trendingProducts}
-          productData={productData}
-          searchQuery={searchQuery}
-          selectedTag={selectedTag}
-          hasResults={hasResults}
+          addToCart={addToCart}
         />
       </main>
 
-      <Footer
-        handleNavClick={handleNavClick}
-        isMenDropdownOpen={isMenDropdownOpen}
-        setIsMenDropdownOpen={setIsMenDropdownOpen}
-        isWomenDropdownOpen={isWomenDropdownOpen}
-        setIsWomenDropdownOpen={setIsWomenDropdownOpen}
-        menSubcategories={menSubcategories}
-        womenSubcategories={womenSubcategories}
-      />
+      <Footer handleNavClick={handleNavClick} />
 
+      {/* Back to Top & WhatsApp */}
       {showBackToTop && (
         <>
           <motion.button
-            onClick={handleScrollToTop}
-            className="fixed bottom-8 right-8 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors duration-300 z-50"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-8 right-8 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 z-50"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            aria-label="Scroll to top"
           >
             <FaArrowUp className="w-5 h-5" />
           </motion.button>
+
           <motion.a
             href="https://wa.me/233558861119"
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-20 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors duration-300 z-50"
+            className="fixed bottom-20 right-8 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 z-50"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            aria-label="Contact via WhatsApp"
           >
             <FaWhatsapp className="w-5 h-5" />
           </motion.a>

@@ -1,8 +1,12 @@
-import React, { useState, useContext } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaStar } from 'react-icons/fa';
-import { CartContext } from './index';
+import React, { useState, useContext, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  FaPlus,
+  FaMinus,
+  FaShoppingBag,
+} from "react-icons/fa";
+import { CartContext } from "./index";
 
 const ProductDetail = () => {
   const context = useContext(CartContext);
@@ -10,198 +14,165 @@ const ProductDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { product } = location.state || {};
-  const [selectedColor, setSelectedColor] = useState('');
+
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [isImageLoading, setIsImageLoading] = useState(true);
+  // Initialize selectedVariant with the first variant/image if available
+  useEffect(() => {
+    if (product?.images && product.images.length > 0) {
+      setSelectedVariant(product.images[0]);
+    }
+  }, [product]);
 
   if (!product) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center min-h-screen flex flex-col items-center justify-center">
-        <p className="text-xl text-gray-600 font-semibold font-[Inter, sans-serif]">Product not found.</p>
-        <motion.button
-          onClick={() => navigate('/')}
-          className="mt-6 inline-flex items-center bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-full hover:bg-indigo-700 transition-colors duration-300 shadow-md"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FaArrowLeft className="mr-2" /> Back to Home
-        </motion.button>
+      <div className="container mx-auto px-4 py-24 text-center min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100">
+          <p className="text-xl text-gray-400 font-medium mb-6">
+            Product not found.
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="bg-indigo-600 text-white py-3 px-8 rounded-xl font-bold"
+          >
+            Return to Shop
+          </button>
+        </div>
       </div>
     );
   }
-
-  if (!handleAddToCart || !getDiscountedPrice) {
-    console.error('CartContext is not properly provided.');
-    return (
-      <div className="container mx-auto px-4 py-12 text-center min-h-screen flex flex-col items-center justify-center">
-        <p className="text-xl text-red-500 font-semibold font-[Inter, sans-serif]">An error occurred. Please try again later.</p>
-        <motion.button
-          onClick={() => navigate('/')}
-          className="mt-6 inline-flex items-center bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-full hover:bg-indigo-700 transition-colors duration-300 shadow-md"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FaArrowLeft className="mr-2" /> Back to Home
-        </motion.button>
-      </div>
-    );
-  }
-
-  const availableColors = product.colors || [];
 
   const handleAddToCartClick = () => {
-    handleAddToCart(product, quantity);
-    navigate('/');
+    // 1. Create a version of the product that uses the selected variant's image
+    const cartProduct = {
+      ...product,
+      image: selectedVariant ? selectedVariant.url : product.image,
+      selectedVariantLabel: selectedVariant?.label || "", // if your data has labels like 'Red' or 'XL'
+    };
+
+    // 2. Add to cart using the updated object
+    handleAddToCart(cartProduct, quantity);
+    navigate("/");
   };
 
   const handleQuantityChange = (delta) => {
-    setQuantity(prev => Math.max(1, prev + delta));
+    setQuantity((prev) => Math.max(1, prev + delta));
   };
 
-  // Placeholder for rating (assuming a rating field could be added to product data)
-  const rating = 4.5; // Static for now, can be replaced with product.rating
-  const maxRating = 5;
+  const displayImage = selectedVariant?.url || product.image;
 
   return (
     <motion.div
-      className="container mx-auto px-4 py-12 max-w-5xl"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="container mx-auto px-4 py-10 max-w-6xl min-h-screen"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
     >
-      {/* Breadcrumb Navigation */}
-      <nav className="mb-6 flex items-center space-x-2 text-sm text-gray-600 font-[Inter, sans-serif]">
-        <motion.a
-          href="/"
-          className="hover:text-indigo-600 transition-colors duration-300"
-          onClick={(e) => { e.preventDefault(); navigate('/'); }}
-          whileHover={{ scale: 1.05 }}
-        >
+      {/* Breadcrumb */}
+      <nav className="mb-10 flex items-center space-x-3 text-sm font-medium text-gray-400">
+        <button onClick={() => navigate("/")} className="hover:text-indigo-600">
           Home
-        </motion.a>
+        </button>
         <span>/</span>
-        <span className="text-gray-400">{product.name}</span>
+        <span className="text-indigo-600 font-bold">{product.category}</span>
+        <span>/</span>
+        <span className="truncate max-w-[150px]">{product.name}</span>
       </nav>
 
-      <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Product Image */}
-        <div className="relative">
-          <AnimatePresence>
-            {isImageLoading && (
-              <motion.div
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg"
-              >
-                <svg className="w-12 h-12 text-indigo-600 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <motion.img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-96 object-contain bg-gray-100 rounded-lg transition-transform duration-300 hover:scale-105"
-            loading="lazy"
-            onLoad={() => setIsImageLoading(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-
-        {/* Product Details */}
-        <div className="flex flex-col space-y-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 font-[Inter, sans-serif]">{product.name}</h1>
-          
-          {/* Price and Discount */}
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl md:text-3xl font-bold text-indigo-600">GHS {getDiscountedPrice(product).toFixed(2)}</span>
-            {product.discount && (
-              <span className="text-lg text-gray-500 line-through">GHS {product.price.toFixed(2)}</span>
-            )}
-          </div>
-
-          {/* Rating */}
-          <div className="flex items-center space-x-1">
-            {[...Array(maxRating)].map((_, index) => (
-              <FaStar
-                key={index}
-                className={index < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-300'}
-                size={20}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Left: Product Image & Variants */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="relative aspect-square bg-gray-50 rounded-[2.5rem] overflow-hidden border border-gray-100">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={displayImage}
+                src={displayImage}
+                alt={product.name}
+                className="w-full h-full object-contain p-10 mix-blend-multiply"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
               />
-            ))}
-            <span className="text-sm text-gray-600 ml-2">({rating})</span>
+            </AnimatePresence>
           </div>
 
-          {/* Description */}
-          <p className="text-gray-600 text-base leading-relaxed">{product.description}</p>
-
-          {/* Color Selector */}
-          
-
-          {/* Quantity Selector */}
-          <div className="flex flex-col space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Quantity:</label>
-            <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-2 w-fit">
-              <motion.button
-                onClick={() => handleQuantityChange(-1)}
-                className="bg-white text-gray-700 px-3 py-1.5 rounded-full shadow-sm hover:bg-gray-200 transition-colors duration-200"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                -
-              </motion.button>
-              <span className="text-base font-medium w-10 text-center">{quantity}</span>
-              <motion.button
-                onClick={() => handleQuantityChange(1)}
-                className="bg-white text-gray-700 px-3 py-1.5 rounded-full shadow-sm hover:bg-gray-200 transition-colors duration-200"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                +
-              </motion.button>
-            </div>
-          </div>
-
-          {/* Add to Cart Button */}
-          <motion.button
-            onClick={handleAddToCartClick}
-            className={`w-full md:w-auto bg-indigo-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-700 transition-colors duration-300 text-base disabled:bg-gray-400 disabled:cursor-not-allowed`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={availableColors.length > 0 && !selectedColor}
-          >
-            Add to Cart
-          </motion.button>
-
-          {/* Tags */}
-          {product.tags && product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {product.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full font-medium"
+          {/* Variant Thumbnails */}
+          {product.images && product.images.length > 0 && (
+            <div className="flex flex-wrap gap-3">
+              {product.images.map((variant, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedVariant(variant)}
+                  className={`w-20 h-20 rounded-2xl border-2 transition-all overflow-hidden bg-white p-1 ${
+                    selectedVariant?.url === variant.url
+                      ? "border-indigo-600 scale-105 shadow-md"
+                      : "border-transparent hover:border-gray-200"
+                  }`}
                 >
-                  {tag}
-                </span>
+                  <img
+                    src={variant.url}
+                    className="w-full h-full object-cover rounded-xl"
+                    alt="variant"
+                  />
+                </button>
               ))}
             </div>
           )}
         </div>
-      </div>
 
-      {/* Back Button */}
-      <motion.button
-        onClick={() => navigate('/')}
-        className="mt-8 inline-flex items-center text-indigo-600 hover:text-indigo-800 font-semibold font-[Inter, sans-serif]"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <FaArrowLeft className="mr-2" /> Back to Products
-      </motion.button>
+        {/* Right: Product Details */}
+        <div className="lg:col-span-6 space-y-8">
+          <div>
+            <h1 className="text-4xl font-black text-gray-900 mb-2">
+              {product.name}
+            </h1>
+            <div className="flex items-center gap-4 text-indigo-600 font-black text-3xl">
+              GHS {getDiscountedPrice(product).toFixed(2)}
+            </div>
+          </div>
+
+          <p className="text-gray-500 text-lg leading-relaxed">
+            {product.description}
+          </p>
+
+          <div className="pt-6 border-t border-gray-100 space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-end">
+              {/* Quantity */}
+              <div className="w-full sm:w-auto">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">
+                  Quantity
+                </label>
+                <div className="flex items-center bg-white border-2 border-gray-100 rounded-2xl p-1">
+                  <button
+                    onClick={() => handleQuantityChange(-1)}
+                    className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-indigo-600"
+                  >
+                    <FaMinus />
+                  </button>
+                  <span className="w-10 text-center font-black">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => handleQuantityChange(1)}
+                    className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-indigo-600"
+                  >
+                    <FaPlus />
+                  </button>
+                </div>
+              </div>
+
+              {/* Add to Cart */}
+              <motion.button
+                onClick={handleAddToCartClick}
+                className="flex-1 w-full bg-gray-900 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-indigo-600 transition-all shadow-xl"
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaShoppingBag /> Add to Cart
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 };
