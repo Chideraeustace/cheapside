@@ -267,7 +267,7 @@ const App = () => {
       };
 
       const response = await fetch(
-        "https://us-central1-eustech-c4332.cloudfunctions.net/createMoolreCheckout",
+        "https://us-central1-login-60ced.cloudfunctions.net/createMoolreCheckout",
         {
           method: "POST",
           headers: {
