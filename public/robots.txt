@@ -1,5 +1,5 @@
-# https://www.stephnicecollection.com/robots.txt
+# https://www.cheapside.store/robots.txt
 User-agent: *
 Allow: /
 
-Sitemap: https://www.stephnicecollection.com/sitemap.xml
+Sitemap: https://www.cheapside.store/sitemap.xml
