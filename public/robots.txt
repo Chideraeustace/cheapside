@@ -1,5 +1,5 @@
-# https://www.cheapside.store/robots.txt
+# https://www.cheapside.shop/robots.txt
 User-agent: *
 Allow: /
 
-Sitemap: https://www.cheapside.store/sitemap.xml
+Sitemap: https://www.cheapside.shop/sitemap.xml
